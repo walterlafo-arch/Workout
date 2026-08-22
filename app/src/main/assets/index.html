@@ -8,7 +8,7 @@
 <title>Log di bordo · Allenamenti</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&family=Oswald:wght@500;600&display=swap" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script src="chart.umd.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
 :root{--bg:#1B1F24;--panel:#232931;--alt:#2A313A;--line:#38414C;--ink:#EDEAE3;--mute:#8B929A;--brass:#D9A441;--ell:#4FA8A0;--wt:#C1622A;--sw:#3E7CB1;--run:#7B5EA7;--ok:#4A8F5A}
@@ -672,8 +672,10 @@ const charts={};
 function dChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
 const cOpts={responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#2A313A',titleColor:'#EDEAE3',bodyColor:'#8B929A',borderColor:'#38414C',borderWidth:1}},scales:{x:{ticks:{color:'#8B929A',font:{size:9}},grid:{color:'#38414C'}},y:{ticks:{color:'#8B929A',font:{size:9}},grid:{color:'#38414C'}}}};
 function mChart(id,labels,data,color){
-  dChart(id);const ctx=document.getElementById(id).getContext('2d');
-  charts[id]=new Chart(ctx,{type:'line',data:{labels,datasets:[{data,borderColor:color,backgroundColor:color+'28',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:color}]},options:cOpts});
+  try{
+    dChart(id);const ctx=document.getElementById(id).getContext('2d');
+    charts[id]=new Chart(ctx,{type:'line',data:{labels,datasets:[{data,borderColor:color,backgroundColor:color+'28',fill:true,tension:.3,pointRadius:4,pointBackgroundColor:color}]},options:cOpts});
+  }catch(e){console.error('Errore grafico '+id+':',e);}
 }
 
 function rOvChart(){
