@@ -11,7 +11,7 @@
 <script src="chart.umd.js"></script>
 <style>
 *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-:root{--bg:#1B1F24;--panel:#232931;--alt:#2A313A;--line:#38414C;--ink:#EDEAE3;--mute:#8B929A;--brass:#D9A441;--ell:#4FA8A0;--wt:#C1622A;--sw:#3E7CB1;--run:#7B5EA7;--ok:#4A8F5A}
+:root{--bg:#1B1F24;--panel:#232931;--alt:#2A313A;--line:#38414C;--ink:#EDEAE3;--mute:#8B929A;--brass:#D9A441;--ell:#4FA8A0;--wt:#C1622A;--sw:#3E7CB1;--run:#7B5EA7;--bw:#B9557A;--ok:#4A8F5A}
 html,body{background:var(--bg);color:var(--ink);font-family:Inter,sans-serif;min-height:100vh;-webkit-tap-highlight-color:transparent}
 .app{max-width:520px;margin:0 auto;padding:16px 14px 80px}
 .eyebrow{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.15em;color:var(--brass);margin-bottom:2px}
@@ -36,9 +36,10 @@ html,body{background:var(--bg);color:var(--ink);font-family:Inter,sans-serif;min
 .tabs{display:flex;gap:5px;margin-bottom:14px;overflow-x:auto;padding-bottom:2px;scrollbar-width:none}
 .tabs::-webkit-scrollbar{display:none}
 .tab{border-radius:20px;padding:6px 13px;font-size:12px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:transparent;color:var(--mute);white-space:nowrap;font-family:Inter,sans-serif}
-.t-ov{background:var(--brass);color:#14181C;border-color:var(--brass)}.t-el{background:var(--ell);color:#14181C;border-color:var(--ell)}.t-wt{background:var(--wt);color:#fff;border-color:var(--wt)}.t-sw{background:var(--sw);color:#fff;border-color:var(--sw)}.t-rn{background:var(--run);color:#fff;border-color:var(--run)}
+.t-ov{background:var(--brass);color:#14181C;border-color:var(--brass)}.t-el{background:var(--ell);color:#14181C;border-color:var(--ell)}.t-wt{background:var(--wt);color:#fff;border-color:var(--wt)}.t-sw{background:var(--sw);color:#fff;border-color:var(--sw)}.t-rn{background:var(--run);color:#fff;border-color:var(--run)}.t-bw{background:var(--bw);color:#fff;border-color:var(--bw)}
+.bbw{background:var(--bw);color:#fff;border:none}
 .panel{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:14px;margin-bottom:12px}
-.p-el{border-color:var(--ell)}.p-wt{border-color:var(--wt)}.p-sw{border-color:var(--sw)}.p-rn{border-color:var(--run)}.p-br{border-color:var(--brass)}
+.p-el{border-color:var(--ell)}.p-wt{border-color:var(--wt)}.p-sw{border-color:var(--sw)}.p-rn{border-color:var(--run)}.p-bw{border-color:var(--bw)}.p-br{border-color:var(--brass)}
 .slabel{font-size:10px;letter-spacing:.06em;color:var(--mute);text-transform:uppercase;margin-bottom:8px}
 .rec-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .rec{background:var(--alt);border-radius:8px;padding:10px}
@@ -91,7 +92,10 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:10px 0}
 
 <div class="header-row">
   <div><div class="eyebrow">PANNELLO ALLENAMENTI <span style="opacity:.5">v2.4</span></div><div class="title">Log di bordo</div></div>
-  <button class="btn bg bsm" onclick="openExp()">📋 Backup</button>
+  <div style="display:flex;gap:8px">
+    <button class="btn bg bsm" onclick="tgForm('f-imp')">📥 Importa</button>
+    <button class="btn bg bsm" id="backupBtn" onclick="openExp()">📋 Backup</button>
+  </div>
 </div>
 
 <div class="filter-bar">
@@ -100,6 +104,15 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:10px 0}
   <button class="fb"    id="fb-year"  onclick="setF('year')" >Anno</button>
   <button class="fb"    id="fb-total" onclick="setF('total')">Totale</button>
 </div>
+
+<div id="periodNav" style="display:flex;align-items:center;gap:6px;margin:-6px 0 14px">
+  <button class="bicon" style="padding:6px 10px" onclick="shiftPeriod(-1)">‹</button>
+  <div id="periodLabel" onclick="openPeriodPicker()" style="flex:1;text-align:center;font-family:'IBM Plex Mono',monospace;font-size:12.5px;color:var(--ink);padding:6px 4px;cursor:pointer;border-bottom:1px dashed var(--line)"></div>
+  <button class="bicon" style="padding:6px 10px" onclick="shiftPeriod(1)">›</button>
+  <button id="periodReset" class="btn bg bsm" style="display:none" onclick="resetPeriod()">Oggi</button>
+</div>
+<input type="month" id="monthPicker" style="position:absolute;opacity:0;width:1px;height:1px;pointer-events:none" onchange="onMonthPick(this.value)">
+<input type="date" id="weekPicker" style="position:absolute;opacity:0;width:1px;height:1px;pointer-events:none" onchange="onWeekPick(this.value)">
 
 <div class="card-grid" id="cardGrid"></div>
 <div id="strk" class="streak hidden"></div>
@@ -110,6 +123,7 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:10px 0}
   <button class="tab" onclick="setTab('wt')">Pesi</button>
   <button class="tab" onclick="setTab('sw')">Nuoto</button>
   <button class="tab" onclick="setTab('rn')">Outdoor</button>
+  <button class="tab" onclick="setTab('bw')">Peso</button>
 </div>
 
 <!-- PANORAMICA -->
@@ -125,19 +139,11 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:10px 0}
   <div class="panel"><div class="slabel">🏆 RECORD PERSONALI</div><div class="rec-grid" id="recG"></div></div>
   <div class="panel" id="cmpP"><div class="slabel">CONFRONTO PERIODO PRECEDENTE</div><div class="rec-grid" id="cmpG"></div></div>
   <div class="panel"><div class="slabel">SESSIONI RECENTI</div><div id="recRows"></div></div>
-  <div id="expP" class="panel p-br hidden">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
-      <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--brass)">Backup JSON</div>
-      <button class="del" onclick="closeExp()">✕</button>
-    </div>
-    <textarea id="expT" rows="7" style="background:var(--alt);border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--ink);font-size:11px;font-family:'IBM Plex Mono',monospace;width:100%;resize:none;outline:none"></textarea>
-    <button class="btn bbr bfull" style="margin-top:10px" onclick="copyExp()">Copia negli appunti</button>
-  </div>
 </div>
 
 <!-- ELLITTICA -->
 <div id="p-el" class="hidden">
-  <div class="ar"><button class="btn bel" onclick="tgForm('f-el')">+ Aggiungi sessione</button><button class="bicon" onclick="tgForm('f-imp')">📥</button></div>
+  <div class="ar"><button class="btn bel bfull" onclick="tgForm('f-el')">+ Aggiungi sessione</button></div>
   <div id="f-el" class="panel p-el hidden">
     <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--ell);margin-bottom:12px">Nuova sessione · Ellittica</div>
     <div class="field"><label>Data</label><input type="date" id="e-dt"></div>
@@ -164,7 +170,7 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:10px 0}
 
 <!-- PESI -->
 <div id="p-wt" class="hidden">
-  <div class="ar"><button class="btn bwt" onclick="tgForm('f-wt')">+ Aggiungi sessione</button><button class="bicon" onclick="tgForm('f-imp')">📥</button></div>
+  <div class="ar"><button class="btn bwt bfull" onclick="tgForm('f-wt')">+ Aggiungi sessione</button></div>
   <div id="f-wt" class="panel p-wt hidden">
     <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--wt);margin-bottom:12px">Nuova sessione · Pesi</div>
     <div class="rf"><div class="field"><label>Data</label><input type="date" id="w-dt"></div><div class="field"><label>Durata (min)</label><input type="number" id="w-du" placeholder="60"></div></div>
@@ -184,7 +190,6 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:10px 0}
       <button class="btn bbr bsm bfull" onclick="sGoal('wt')">Salva obiettivi</button><hr class="sep">
     </div>
     <div id="gd-wt"></div>
-  </div>
   <div class="panel" id="wt-library">
     <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
       <div class="slabel" style="margin:0">📚 LIBRERIA ESERCIZI</div>
@@ -221,7 +226,7 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:10px 0}
 
 <!-- NUOTO -->
 <div id="p-sw" class="hidden">
-  <div class="ar"><button class="btn bsw" onclick="tgForm('f-sw')">+ Aggiungi sessione</button><button class="bicon" onclick="tgForm('f-imp')">📥</button></div>
+  <div class="ar"><button class="btn bsw bfull" onclick="tgForm('f-sw')">+ Aggiungi sessione</button></div>
   <div id="f-sw" class="panel p-sw hidden">
     <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--sw);margin-bottom:12px">Nuova sessione · Nuoto</div>
     <div class="field"><label>Data</label><input type="date" id="s-dt"></div>
@@ -260,7 +265,7 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:10px 0}
 
 <!-- CORSA -->
 <div id="p-rn" class="hidden">
-  <div class="ar"><button class="btn brn" onclick="tgForm('f-rn')">+ Aggiungi sessione</button><button class="bicon" onclick="tgForm('f-imp')">📥</button></div>
+  <div class="ar"><button class="btn brn bfull" onclick="tgForm('f-rn')">+ Aggiungi sessione</button></div>
   <div id="f-rn" class="panel p-rn hidden">
     <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--run);margin-bottom:12px">Nuova sessione · Outdoor</div>
     <div class="field"><label>Tipo attività</label><select id="r-at" style="background:var(--alt);border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--ink);font-size:13.5px;font-family:Inter,sans-serif;outline:none;width:100%"><option value="Corsa">🏃 Corsa</option><option value="Camminata">🚶 Camminata</option><option value="Hiking">🥾 Hiking</option><option value="Kayak">🛶 Kayak</option><option value="Ciclismo">🚴 Ciclismo</option><option value="Altro">⚡ Altro</option></select></div>
@@ -290,7 +295,30 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:10px 0}
   <div class="panel"><div id="rn-rows"></div></div>
 </div>
 
-<!-- IMPORT (shared) -->
+<!-- PESO CORPOREO -->
+<div id="p-bw" class="hidden">
+  <div class="ar"><button class="btn bbw bfull" onclick="tgForm('f-bw')">+ Aggiungi pesata</button></div>
+  <div id="f-bw" class="panel p-bw hidden">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--bw);margin-bottom:12px">Nuova pesata</div>
+    <div class="rf"><div class="field"><label>Data</label><input type="date" id="b-dt"></div><div class="field"><label>Peso (kg)</label><input type="number" id="b-wt" placeholder="93.9" step="0.1"></div></div>
+    <div style="font-size:11px;color:var(--mute);margin:2px 0 8px">Campi facoltativi, solo se la tua bilancia li fornisce:</div>
+    <div class="rf"><div class="field"><label>BMI</label><input type="number" id="b-bmi" placeholder="30.0" step="0.1"></div><div class="field"><label>Grasso corporeo (%)</label><input type="number" id="b-fat" placeholder="28.7" step="0.1"></div></div>
+    <div class="rf"><div class="field"><label>Massa muscolare (kg)</label><input type="number" id="b-mukg" placeholder="63.4" step="0.1"></div><div class="field"><label>Massa muscolare (%)</label><input type="number" id="b-mupc" placeholder="67.5" step="0.1"></div></div>
+    <div class="field"><label>Acqua corporea (%)</label><input type="number" id="b-h2o" placeholder="49.5" step="0.1"></div>
+    <button class="btn bbw bfull" onclick="sBw()">Salva pesata</button>
+  </div>
+  <div class="panel" id="ch-bw">
+    <div class="mrow"><div class="slabel" style="margin:0">TREND</div>
+    <select class="msel" id="bw-m" onchange="rBwChart()">
+      <option value="weightKg">Peso (kg)</option><option value="bmi">BMI</option><option value="bodyFatPct">Grasso corporeo (%)</option><option value="muscleKg">Massa muscolare (kg)</option><option value="musclePct">Massa muscolare (%)</option><option value="waterPct">Acqua corporea (%)</option>
+    </select></div>
+    <div class="cw"><canvas id="c-bw"></canvas></div>
+  </div>
+  <div class="panel"><div class="slabel">RIEPILOGO</div><div class="gsg" id="bw-sum"></div></div>
+  <div class="panel"><div id="bw-rows"></div></div>
+</div>
+
+<!-- IMPORT (shared, reachable from every tab) -->
 <div id="f-imp" class="panel p-br hidden" style="margin-top:12px">
   <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--brass);margin-bottom:12px">Importa JSON</div>
   <div id="imp-android-btn" style="display:none;margin-bottom:10px"><button class="btn bbr bfull" onclick="window.Android&&window.Android.pickBackup()">📂 Scegli file backup</button></div>
@@ -299,17 +327,29 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:10px 0}
   <button class="btn bbr bfull" onclick="doImp()">Importa</button>
 </div>
 
+<!-- BACKUP (shared, reachable from every tab) -->
+<div id="expP" class="panel p-br hidden" style="margin-top:12px">
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--brass)">Backup JSON</div>
+    <button class="del" onclick="closeExp()">✕</button>
+  </div>
+  <textarea id="expT" rows="7" style="background:var(--alt);border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--ink);font-size:11px;font-family:'IBM Plex Mono',monospace;width:100%;resize:none;outline:none"></textarea>
+  <button class="btn bbr bfull" id="expSaveBtn" style="margin-top:10px" onclick="copyExp()">Copia negli appunti</button>
+  <div id="expLoc" style="font-size:11px;color:var(--mute);margin-top:8px;display:none">📌 Backup salvato in: <span id="expLocPath"></span> — <a href="#" onclick="changeBackupLoc();return false;" style="color:var(--brass)">cambia posizione</a></div>
+  <div id="expCsv" style="margin-top:10px"><button class="btn bg bsm bfull" onclick="exportCsv()">⬇️ Esporta CSV</button></div>
+</div>
+
 </div>
 <div id="toast"></div>
 
 <script>
 const KEY='logdabordo_v1';
 const WT_LABELS=['Upper Body','Spalle & Braccia','Legs','Full Body','Core'];
-let db={elliptical:[],weights:[],swim:[],run:[],goals:{},exercises:{}};
+let db={elliptical:[],weights:[],swim:[],run:[],bw:[],goals:{},exercises:{}};
 let cf='week', ct='ov';
 
 function load(){
-  try{const r=localStorage.getItem(KEY);if(r){const p=JSON.parse(r);db.elliptical=p.elliptical||[];db.weights=p.weights||[];db.swim=p.swim||[];db.run=p.run||[];db.goals=p.goals||{};db.exercises=p.exercises||{};
+  try{const r=localStorage.getItem(KEY);if(r){const p=JSON.parse(r);db.elliptical=p.elliptical||[];db.weights=p.weights||[];db.swim=p.swim||[];db.run=p.run||[];db.bw=p.bw||[];db.goals=p.goals||{};db.exercises=p.exercises||{};
     // Seed default exercises if empty
     if(!Object.keys(db.exercises).length){
       db.exercises={
@@ -330,24 +370,77 @@ function fmtPace(sec){const s=Math.round(sec);return Math.floor(s/60)+':'+(s%60<
 function autoSpeed(distKm,durMin){if(!distKm||!durMin)return 0;return Math.round(distKm/(durMin/60)*10)/10;}
 function fmtDate(d){if(!d)return'';const[y,m,g]=d.split('-');return`${g}/${m}/${y}`;}
 
-function fDays(){return cf==='week'?7:cf==='month'?30:cf==='year'?365:99999;}
-function cutoff(off=0){return new Date(Date.now()-(off+fDays())*86400000).toISOString().slice(0,10);}
-function filt(arr,off=0){
-  if(cf==='total'&&off===0)return arr;
-  if(cf==='total')return[];
-  const from=cutoff(off),to=off?cutoff(off-fDays()):td();
+const MESI=['Gen','Feb','Mar','Apr','Mag','Giu','Lug','Ago','Set','Ott','Nov','Dic'];
+const MESI_LONG=['Gennaio','Febbraio','Marzo','Aprile','Maggio','Giugno','Luglio','Agosto','Settembre','Ottobre','Novembre','Dicembre'];
+let filterAnchor=new Date();
+function toISO(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+function startOfWeek(d){const x=new Date(d);const day=(x.getDay()+6)%7;x.setDate(x.getDate()-day);return x;}
+function endOfWeek(d){const s=startOfWeek(d);const e=new Date(s);e.setDate(s.getDate()+6);return e;}
+function periodRangeFor(anchor){
+  if(cf==='week'){return[toISO(startOfWeek(anchor)),toISO(endOfWeek(anchor))];}
+  if(cf==='month'){const y=anchor.getFullYear(),m=anchor.getMonth();return[toISO(new Date(y,m,1)),toISO(new Date(y,m+1,0))];}
+  if(cf==='year'){const y=anchor.getFullYear();return[y+'-01-01',y+'-12-31'];}
+  return[null,null];
+}
+function prevAnchor(){
+  const d=new Date(filterAnchor);
+  if(cf==='week')d.setDate(d.getDate()-7);
+  else if(cf==='month')d.setMonth(d.getMonth()-1);
+  else if(cf==='year')d.setFullYear(d.getFullYear()-1);
+  return d;
+}
+function filt(arr,prev){
+  if(cf==='total')return prev?[]:arr;
+  const[from,to]=periodRangeFor(prev?prevAnchor():filterAnchor);
   return arr.filter(w=>w.date>=from&&w.date<=to);
 }
 function sum(arr,k){return arr.reduce((s,w)=>s+(w[k]||0),0);}
 
 function setF(f){
-  cf=f;
+  cf=f;filterAnchor=new Date();
   ['week','month','year','total'].forEach(k=>document.getElementById('fb-'+k).classList.toggle('on',k===f));
   rAll();
 }
+function shiftPeriod(dir){
+  if(cf==='week')filterAnchor.setDate(filterAnchor.getDate()+dir*7);
+  else if(cf==='month')filterAnchor.setMonth(filterAnchor.getMonth()+dir);
+  else if(cf==='year')filterAnchor.setFullYear(filterAnchor.getFullYear()+dir);
+  rAll();
+}
+function resetPeriod(){filterAnchor=new Date();rAll();}
+function openPeriodPicker(){
+  if(cf==='month'){
+    const inp=document.getElementById('monthPicker');
+    inp.value=filterAnchor.getFullYear()+'-'+String(filterAnchor.getMonth()+1).padStart(2,'0');
+    if(inp.showPicker)inp.showPicker();else inp.click();
+  } else if(cf==='week'){
+    const inp=document.getElementById('weekPicker');
+    inp.value=toISO(filterAnchor);
+    if(inp.showPicker)inp.showPicker();else inp.click();
+  }
+}
+function onMonthPick(v){if(!v)return;const[y,m]=v.split('-');filterAnchor=new Date(parseInt(y),parseInt(m)-1,1);rAll();}
+function onWeekPick(v){if(!v)return;filterAnchor=new Date(v);rAll();}
+function periodLabelText(){
+  if(cf==='week'){const s=startOfWeek(filterAnchor),e=endOfWeek(filterAnchor);return`${s.getDate()} ${MESI[s.getMonth()]} – ${e.getDate()} ${MESI[e.getMonth()]} ${e.getFullYear()}`;}
+  if(cf==='month')return`${MESI_LONG[filterAnchor.getMonth()]} ${filterAnchor.getFullYear()}`;
+  if(cf==='year')return`${filterAnchor.getFullYear()}`;
+  return'';
+}
+function isCurrentPeriod(){
+  const[f1,t1]=periodRangeFor(filterAnchor),[f2,t2]=periodRangeFor(new Date());
+  return f1===f2&&t1===t2;
+}
+function rPeriodNav(){
+  const nav=document.getElementById('periodNav');if(!nav)return;
+  if(cf==='total'){nav.style.display='none';return;}
+  nav.style.display='flex';
+  document.getElementById('periodLabel').textContent=periodLabelText();
+  document.getElementById('periodReset').style.display=isCurrentPeriod()?'none':'inline-block';
+}
 
-const panes=['ov','el','wt','sw','rn'];
-const tCls={ov:'t-ov',el:'t-el',wt:'t-wt',sw:'t-sw',rn:'t-rn'};
+const panes=['ov','el','wt','sw','rn','bw'];
+const tCls={ov:'t-ov',el:'t-el',wt:'t-wt',sw:'t-sw',rn:'t-rn',bw:'t-bw'};
 function setTab(t){
   ct=t;
   panes.forEach(p=>document.getElementById('p-'+p).classList.toggle('hidden',p!==t));
@@ -355,7 +448,7 @@ function setTab(t){
   closeAll();rAll();
 }
 
-const allForms=['f-el','f-wt','f-sw','f-rn','f-imp','expP'];
+const allForms=['f-el','f-wt','f-sw','f-rn','f-bw','f-imp','expP','lib-panel'];
 function tgForm(id){
   const el=document.getElementById(id);const was=el.classList.contains('hidden');
   allForms.forEach(f=>{const fe=document.getElementById(f);if(fe)fe.classList.add('hidden');});
@@ -409,6 +502,23 @@ function sEl(){
   save();document.getElementById('f-el').classList.add('hidden');
   ['e-du','e-ca','e-dk','e-hr','e-hm','e-cd','e-cm','e-in','e-im','e-re','e-rm','e-eg','e-sp','e-ta','e-tn'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
   toast('✓ Sessione salvata');rAll();
+}
+
+function sBw(){
+  const wtVal=n(document.getElementById('b-wt').value);
+  if(!wtVal){toast('Inserisci almeno il peso');return;}
+  const w={id:uid(),type:'bw',date:document.getElementById('b-dt').value||td(),weightKg:wtVal};
+  const bmi=n(document.getElementById('b-bmi').value);if(bmi)w.bmi=bmi;
+  const fat=n(document.getElementById('b-fat').value);if(fat)w.bodyFatPct=fat;
+  const mukg=n(document.getElementById('b-mukg').value);if(mukg)w.muscleKg=mukg;
+  const mupc=n(document.getElementById('b-mupc').value);if(mupc)w.musclePct=mupc;
+  const h2o=n(document.getElementById('b-h2o').value);if(h2o)w.waterPct=h2o;
+  // se esiste già una pesata nello stesso giorno, la sostituisce invece di duplicarla
+  db.bw=db.bw.filter(x=>x.date!==w.date);
+  db.bw.push(w);db.bw.sort((a,b)=>a.date.localeCompare(b.date));
+  save();document.getElementById('f-bw').classList.add('hidden');
+  ['b-wt','b-bmi','b-fat','b-mukg','b-mupc','b-h2o'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  toast('✓ Pesata salvata');rAll();
 }
 
 let exR=[];
@@ -554,7 +664,10 @@ function sRn(){
   toast('✓ Sessione salvata');rAll();
 }
 
-function delW(type,id){db[type]=db[type].filter(w=>w.id!==id);save();toast('Sessione eliminata');rAll();}
+function delW(type,id){
+  if(!confirm('Eliminare questa sessione? Non si può annullare.'))return;
+  db[type]=db[type].filter(w=>w.id!==id);save();toast('Sessione eliminata');rAll();
+}
 
 // IMPORT/EXPORT
 function doImpFromJson(raw){
@@ -569,14 +682,14 @@ function doImpFromJson(raw){
     else if(parsed.data){
       // New versioned backup format
       const d=parsed.data;
-      items=[...(d.elliptical||[]),...(d.weights||[]),...(d.swim||[]),...(d.run||[])];
+      items=[...(d.elliptical||[]),...(d.weights||[]),...(d.swim||[]),...(d.run||[]),...(d.bw||[]).map(x=>({...x,type:'bw'}))];
       if(parsed.exercises)db.exercises=parsed.exercises;
       if(parsed.goals)db.goals=parsed.goals;
     }
-    const tMap={elliptical:'elliptical',weights:'weights',swim:'swim',run:'run'};
+    const tMap={elliptical:'elliptical',weights:'weights',swim:'swim',run:'run',bw:'bw'};
     let added=0;
     items.forEach(item=>{const tp=tMap[item.type];if(!tp)return;if(!item.id)item.id=uid();if(!db[tp].find(w=>w.id===item.id)){db[tp].push(item);added++;}});
-    ['elliptical','weights','swim','run'].forEach(t=>db[t].sort((a,b)=>a.date.localeCompare(b.date)));
+    ['elliptical','weights','swim','run','bw'].forEach(t=>db[t].sort((a,b)=>a.date.localeCompare(b.date)));
     save();
     if(errEl)errEl.textContent='';
     toast('✓ '+added+' sessioni importate');rAll();
@@ -588,9 +701,9 @@ function doImp(){
   txt=txt.replace(/[\u201C\u201D\u201E\u201F]/g,'"').replace(/[\u2018\u2019\u201A\u201B]/g,"'");const errEl=document.getElementById('imp-e');
   try{
     const arr=JSON.parse(txt);const items=Array.isArray(arr)?arr:[arr];let added=0;
-    const tMap={elliptical:'elliptical',weights:'weights',swim:'swim',run:'run'};
+    const tMap={elliptical:'elliptical',weights:'weights',swim:'swim',run:'run',bw:'bw'};
     items.forEach(item=>{const tp=tMap[item.type];if(!tp)return;if(!item.id)item.id=uid();if(!db[tp].find(w=>w.id===item.id)){db[tp].push(item);added++;}});
-    ['elliptical','weights','swim','run'].forEach(t=>db[t].sort((a,b)=>a.date.localeCompare(b.date)));
+    ['elliptical','weights','swim','run','bw'].forEach(t=>db[t].sort((a,b)=>a.date.localeCompare(b.date)));
     save();document.getElementById('f-imp').classList.add('hidden');document.getElementById('imp-t').value='';errEl.textContent='';
     toast('✓ '+added+' sessioni importate');rAll();
   }catch(e){errEl.textContent='JSON non valido: '+e.message;}
@@ -600,7 +713,7 @@ function buildBackupJson(){
   return JSON.stringify({
     app:'logdabordo', backupVersion:2,
     createdAt:new Date().toISOString(),
-    data:{elliptical:db.elliptical,weights:db.weights,swim:db.swim,run:db.run},
+    data:{elliptical:db.elliptical,weights:db.weights,swim:db.swim,run:db.run,bw:db.bw},
     exercises:db.exercises, goals:db.goals
   },null,2);
 }
@@ -613,17 +726,70 @@ function closeExp(){document.getElementById('expP').classList.add('hidden');}
 function copyExp(){
   const json=buildBackupJson();
   if(window.Android){
-    // Native Android file picker save
-    window.Android.saveBackup(json);
-    toast('✓ Salvataggio file...');
+    if(window.Android.hasSavedLocation && window.Android.hasSavedLocation()){
+      window.Android.quickSave(json);
+    } else {
+      window.Android.saveBackup(json);
+      toast('✓ Scegli dove salvare...');
+    }
   } else {
     navigator.clipboard.writeText(json).then(()=>toast('✓ Copiato'));
   }
 }
+function changeBackupLoc(){
+  if(window.Android && window.Android.forgetSavedLocation)window.Android.forgetSavedLocation();
+  updateBackupLabel(false,'');
+  if(window.Android)window.Android.saveBackup(buildBackupJson());
+}
+function updateBackupLabel(saved,name){
+  const btn=document.getElementById('backupBtn');
+  const saveBtn=document.getElementById('expSaveBtn');
+  const loc=document.getElementById('expLoc');
+  const locPath=document.getElementById('expLocPath');
+  if(!btn)return;
+  if(saved){
+    btn.textContent='💾 Salva';
+    if(saveBtn)saveBtn.textContent='💾 Salva ora';
+    if(loc){loc.style.display='block';if(locPath)locPath.textContent=name||'';}
+  } else {
+    btn.textContent='📋 Backup';
+    if(saveBtn)saveBtn.textContent='Copia negli appunti';
+    if(loc)loc.style.display='none';
+  }
+}
+function exportCsv(){
+  const rows=[['tipo','data','durata_min','calorie','distanza_km','fc_media','fc_max','note']];
+  const push=(t,d)=>rows.push([t,d.date,d.durationMin||'',d.calories||'',d.distanceKm||d.distanceM&&(d.distanceM/1000)||'',d.avgHR||'',d.maxHR||'',(d.activityType||d.label||'')]);
+  db.elliptical.forEach(d=>push('Ellittica',d));
+  db.weights.forEach(d=>push('Pesi',d));
+  db.swim.forEach(d=>push('Nuoto',d));
+  db.run.forEach(d=>push('Outdoor',d));
+  db.bw.forEach(d=>{
+    const note=[d.weightKg+'kg',d.bmi?'BMI '+d.bmi:'',d.bodyFatPct?d.bodyFatPct+'% grasso':'',d.musclePct?d.musclePct+'% musc.':'',d.waterPct?d.waterPct+'% acqua':''].filter(Boolean).join(' · ');
+    rows.push(['Peso',d.date,'','','','','',note]);
+  });
+  const csv=rows.map(r=>r.map(v=>{const s=String(v);return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(';')).join('\n');
+  if(window.Android && window.Android.saveCsv){
+    window.Android.saveCsv(csv);
+  } else {
+    const blob=new Blob([csv],{type:'text/csv'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='LogDiBordo_export.csv';a.click();
+  }
+}
 
-// Called by MainActivity.java after user picks a backup file
+// Called by MainActivity.java after user picks a backup file to import
 function onNativeBackupSelected(json){
   doImpFromJson(json);
+}
+// Called by MainActivity.java after saveBackup() completes (first save, or "cambia posizione")
+function onBackupSaved(fileName){
+  updateBackupLabel(true,fileName);
+  toast('✓ Backup salvato');
+}
+// Called by MainActivity.java after a quickSave() attempt
+function onQuickSaveResult(ok){
+  if(ok)toast('✓ Backup salvato');
+  // se ok è false, MainActivity ha già riaperto il selettore file come fallback
 }
 
 // STREAK
@@ -710,6 +876,29 @@ function rElRows(){
   el.innerHTML=d.map(w=>`<div class="row"><div><div class="rd">${w.activityType||'Corsa'} · ${fmtDate(w.date)}</div><div class="chips">${w.durationMin?chip('⏱',fmtMin(w.durationMin),''):''}${w.calories?chip('🔥',w.calories,'kcal'):''}${w.distanceKm?chip('📍',w.distanceKm,'km'):''}${w.avgSpeed?chip('⚡',w.avgSpeed,'km/h'):''}${w.avgHR?chip('♥',w.avgHR,'bpm'):''}${w.cadenceAvg?chip('↻',w.cadenceAvg,'rpm'):''}${w.resistanceAvg?chip('⚙',w.resistanceAvg+'/15',''):''}${w.inclineAvg?chip('∧',w.inclineAvg+'%',''):''}${w.elevationGain?chip('⛰',w.elevationGain,'m D+'):''}${w.teAerobic?chip('💚','A'+w.teAerobic+'/An'+(w.teAnaerobic||0),'TE'):''}
     </div></div><button class="del" onclick="delW('elliptical','${w.id}')">🗑</button></div>`).join('');
 }
+function rBwRows(){
+  const el=document.getElementById('bw-rows'),d=[...db.bw].reverse();
+  if(!d.length){el.innerHTML='<p class="empty">Nessuna pesata registrata.</p>';return;}
+  el.innerHTML=d.map(w=>`<div class="row"><div><div class="rd">${fmtDate(w.date)}</div><div class="chips">${chip('⚖',w.weightKg,'kg')}${w.bmi?chip('📐',w.bmi,'BMI'):''}${w.bodyFatPct?chip('🔸',w.bodyFatPct,'% grasso'):''}${w.muscleKg?chip('💪',w.muscleKg,'kg musc.'):''}${w.musclePct?chip('💪',w.musclePct,'% musc.'):''}${w.waterPct?chip('💧',w.waterPct,'% acqua'):''}</div></div><button class="del" onclick="delW('bw','${w.id}')">🗑</button></div>`).join('');
+}
+function rBwChart(){
+  const d=db.bw,e=document.getElementById('ch-bw');if(d.length<2){e.style.display='none';return;}e.style.display='block';
+  const m=document.getElementById('bw-m').value;
+  const filled=d.filter(w=>w[m]!==undefined&&w[m]!==null);
+  mChart('c-bw',filled.map(w=>w.date.slice(5)),filled.map(w=>w[m]||0),'#B9557A');
+}
+function rBwSum(){
+  const el=document.getElementById('bw-sum');if(!el)return;
+  const d=db.bw;
+  if(!d.length){el.innerHTML='<p class="empty" style="font-size:12px">Aggiungi la prima pesata</p>';return;}
+  const last=d[d.length-1],first=d[0];
+  const items=[{v:last.weightKg+' kg',l:'Peso attuale'}];
+  if(d.length>1)items.push({v:(last.weightKg-first.weightKg>=0?'+':'')+Math.round((last.weightKg-first.weightKg)*10)/10+' kg',l:'Da inizio tracciamento'});
+  if(d.length>1){const prev=d[d.length-2];items.push({v:(last.weightKg-prev.weightKg>=0?'+':'')+Math.round((last.weightKg-prev.weightKg)*10)/10+' kg',l:'Dall\'ultima pesata'});}
+  if(last.bodyFatPct)items.push({v:last.bodyFatPct+'%',l:'Grasso corporeo'});
+  if(last.musclePct)items.push({v:last.musclePct+'%',l:'Massa muscolare'});
+  el.innerHTML=items.map(s=>`<div class="gs"><span class="gs-v">${s.v}</span><span class="gs-l">${s.l}</span></div>`).join('');
+}
 function rWtRows(){
   const el=document.getElementById('wt-rows'),d=[...db.weights].reverse();
   if(!d.length){el.innerHTML='<p class="empty">Nessuna sessione.</p>';return;}
@@ -749,6 +938,7 @@ function rRnRows(){
 
 // RENDER ALL
 function rAll(){
+  rPeriodNav();
   // cards
   const el=filt(db.elliptical),wt=filt(db.weights),sw=filt(db.swim),rn=filt(db.run);
   const ld=arr=>arr.length?arr[arr.length-1].date:null;
@@ -789,11 +979,10 @@ function rAll(){
   // comparison
   if(cf==='total'){document.getElementById('cmpP').classList.add('hidden');}else{
     document.getElementById('cmpP').classList.remove('hidden');
-    const fd=fDays();
-    const pelCurr=filt(db.elliptical),pelPrev=filt(db.elliptical,fd);
-    const pwtCurr=filt(db.weights),pwtPrev=filt(db.weights,fd);
-    const pswCurr=filt(db.swim),pswPrev=filt(db.swim,fd);
-    const prnCurr=filt(db.run),prnPrev=filt(db.run,fd);
+    const pelCurr=filt(db.elliptical),pelPrev=filt(db.elliptical,true);
+    const pwtCurr=filt(db.weights),pwtPrev=filt(db.weights,true);
+    const pswCurr=filt(db.swim),pswPrev=filt(db.swim,true);
+    const prnCurr=filt(db.run),prnPrev=filt(db.run,true);
     const cmpItems=[
       {n:'Kcal totali',c:sum(pelCurr,'calories')+sum(pwtCurr,'calories')+sum(pswCurr,'calories')+sum(prnCurr,'calories'),p:sum(pelPrev,'calories')+sum(pwtPrev,'calories')+sum(pswPrev,'calories')+sum(prnPrev,'calories'),u:'kcal'},
       {n:'Km ellittica',c:Math.round(sum(pelCurr,'distanceKm')*10)/10,p:Math.round(sum(pelPrev,'distanceKm')*10)/10,u:'km'},
@@ -824,17 +1013,20 @@ function rAll(){
   const bkEl=document.getElementById('wt-bk-rows');
   if(bkEl)bkEl.innerHTML=bkRows||'<p class="empty" style="font-size:12px">Nessuna sessione etichettata nel periodo</p>';
 
-  rElRows();rElChart();rWtRows();rWtChart();rSwRows();rSwChart();rRnRows();rRnChart();
+  rElRows();rElChart();rWtRows();rWtChart();rSwRows();rSwChart();rRnRows();rRnChart();rBwRows();rBwChart();rBwSum();
 }
 
 document.addEventListener('DOMContentLoaded',()=>{
   load();
-  ['e-dt','w-dt','s-dt','r-dt'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=td();});
+  ['e-dt','w-dt','s-dt','r-dt','b-dt'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=td();});
   initEx();initSwStyles();rLibList();updateExDatalist();setF('week');
   // Show native file picker button when running in Android WebView
   if(window.Android){
     const btn=document.getElementById('imp-android-btn');
     if(btn)btn.style.display='block';
+    if(window.Android.hasSavedLocation && window.Android.hasSavedLocation()){
+      updateBackupLabel(true, window.Android.getSavedLocationName?window.Android.getSavedLocationName():'');
+    }
   }
 });
 </script>
