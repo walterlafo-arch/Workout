@@ -760,10 +760,82 @@ function delW(type,id){
 }
 
 // IMPORT/EXPORT
+// IMPORT CSV (recupero da esportazioni Esporta CSV)
+function parseCsvLine(line,delim){
+  const res=[];let cur='';let q=false;
+  for(let i=0;i<line.length;i++){
+    const c=line[i];
+    if(q){
+      if(c==='"'){if(line[i+1]==='"'){cur+='"';i++;}else{q=false;}}
+      else cur+=c;
+    } else {
+      if(c==='"')q=true;
+      else if(c===delim){res.push(cur);cur='';}
+      else cur+=c;
+    }
+  }
+  res.push(cur);return res;
+}
+function parseCsv(text){
+  const lines=text.split(/\r?\n/).filter(l=>l.trim().length);
+  if(!lines.length)return[];
+  const delim=lines[0].includes(';')?';':',';
+  const header=parseCsvLine(lines[0],delim).map(h=>h.trim().toLowerCase());
+  return lines.slice(1).map(l=>{
+    const cols=parseCsvLine(l,delim);const row={};
+    header.forEach((h,i)=>row[h]=(cols[i]!==undefined?cols[i]:'').trim());
+    return row;
+  });
+}
+const CSV_TYPE_MAP={'Ellittica':'elliptical','Pesi':'weights','Nuoto':'swim','Outdoor':'run','Peso':'bw'};
+function importCsv(text){
+  const rows=parseCsv(text);
+  let added=0,skipped=0;
+  rows.forEach(r=>{
+    const tp=CSV_TYPE_MAP[r.tipo];
+    if(!tp||!r.data)return;
+    if(tp==='bw'){
+      const note=r.note||'';
+      const kg=note.match(/([\d.]+)\s*kg/);
+      if(!kg)return;
+      const w={id:uid(),type:'bw',date:r.data,weightKg:parseFloat(kg[1])};
+      const bmi=note.match(/BMI\s*([\d.]+)/);if(bmi)w.bmi=parseFloat(bmi[1]);
+      const fat=note.match(/([\d.]+)%\s*grasso/);if(fat)w.bodyFatPct=parseFloat(fat[1]);
+      const musc=note.match(/([\d.]+)%\s*musc/);if(musc)w.musclePct=parseFloat(musc[1]);
+      const wat=note.match(/([\d.]+)%\s*acqua/);if(wat)w.waterPct=parseFloat(wat[1]);
+      if(db.bw.find(x=>x.date===w.date)){skipped++;return;}
+      db.bw.push(w);added++;
+    } else {
+      const w={id:uid(),type:tp,date:r.data};
+      if(r.durata_min)w.durationMin=parseFloat(r.durata_min);
+      if(r.calorie)w.calories=parseFloat(r.calorie);
+      if(r.distanza_km)w.distanceKm=parseFloat(r.distanza_km);
+      if(r.fc_media)w.avgHR=parseFloat(r.fc_media);
+      if(r.fc_max)w.maxHR=parseFloat(r.fc_max);
+      if(tp==='weights'&&r.note)w.label=r.note;
+      if(tp==='run'&&r.note)w.activityType=r.note;
+      const dup=db[tp].find(x=>x.date===w.date&&(x.durationMin||0)===(w.durationMin||0)&&(x.calories||0)===(w.calories||0));
+      if(dup){skipped++;return;}
+      db[tp].push(w);added++;
+    }
+  });
+  ['elliptical','weights','swim','run','bw'].forEach(t=>db[t].sort((a,b)=>a.date.localeCompare(b.date)));
+  save();
+  toast('✓ '+added+' sessioni importate da CSV'+(skipped?' ('+skipped+' scartate perché già presenti)':''));
+  rAll();
+  return added;
+}
+function looksLikeJson(txt){const t=txt.trim();return t.startsWith('{')||t.startsWith('[');}
+
 function doImpFromJson(raw){
   let txt=raw.trim();
-  txt=txt.replace(/[\u201C\u201D\u201E\u201F]/g,'"').replace(/[\u2018\u2019\u201A\u201B]/g,"'");
   const errEl=document.getElementById('imp-e');
+  if(!looksLikeJson(txt)){
+    try{importCsv(txt);if(errEl)errEl.textContent='';}
+    catch(e){if(errEl)errEl.textContent='CSV non valido: '+e.message;}
+    return;
+  }
+  txt=txt.replace(/[\u201C\u201D\u201E\u201F]/g,'"').replace(/[\u2018\u2019\u201A\u201B]/g,"'");
   try{
     const parsed=JSON.parse(txt);
     // Support both new versioned backup and legacy array
@@ -788,7 +860,15 @@ function doImpFromJson(raw){
 
 function doImp(){
   let txt=document.getElementById('imp-t').value.trim();
-  txt=txt.replace(/[\u201C\u201D\u201E\u201F]/g,'"').replace(/[\u2018\u2019\u201A\u201B]/g,"'");const errEl=document.getElementById('imp-e');
+  const errEl=document.getElementById('imp-e');
+  if(!looksLikeJson(txt)){
+    try{
+      importCsv(txt);
+      document.getElementById('f-imp').classList.add('hidden');document.getElementById('imp-t').value='';errEl.textContent='';
+    }catch(e){errEl.textContent='CSV non valido: '+e.message;}
+    return;
+  }
+  txt=txt.replace(/[\u201C\u201D\u201E\u201F]/g,'"').replace(/[\u2018\u2019\u201A\u201B]/g,"'");
   try{
     const arr=JSON.parse(txt);const items=Array.isArray(arr)?arr:[arr];let added=0;
     const tMap={elliptical:'elliptical',weights:'weights',swim:'swim',run:'run',bw:'bw'};
