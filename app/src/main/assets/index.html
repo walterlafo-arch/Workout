@@ -175,11 +175,9 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:10px 0}
     <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--wt);margin-bottom:12px">Nuova sessione · Pesi</div>
     <div class="rf"><div class="field"><label>Data</label><input type="date" id="w-dt"></div><div class="field"><label>Durata (min)</label><input type="number" id="w-du" placeholder="60"></div></div>
     <div class="rf"><div class="field"><label>Calorie</label><input type="number" id="w-ca" placeholder="300"></div>
-    <div class="field"><label>Tipologia</label><select id="w-lb" onchange="updateExDatalist()" style="background:var(--alt);border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--ink);font-size:13.5px;font-family:Inter,sans-serif;outline:none;width:100%"><option value="">— Seleziona —</option><option value="PULL">PULL · Dorsali, deltoidi e bicipiti</option><option value="PUSH">PUSH · Petto, spalle e tricipiti</option><option value="LEGS">LEGS · Gambe, polpacci e addome</option></select></div></div>
-    <div class="slabel" style="margin-top:4px">Esercizi</div>
-    <div id="w-exs"></div>
-    <button class="btn bg bsm" onclick="addEx()" style="margin-bottom:10px">+ aggiungi esercizio</button>
-    <div style="font-size:12px;color:var(--mute);margin-bottom:10px">Volume totale: <span id="w-vol" style="font-family:'IBM Plex Mono',monospace;color:var(--ink)">0</span> kg</div>
+    <div class="field"><label>Tipologia</label><select id="w-lb" style="background:var(--alt);border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--ink);font-size:13.5px;font-family:Inter,sans-serif;outline:none;width:100%"><option value="">— Seleziona —</option><option value="PULL">PULL · Dorsali, deltoidi e bicipiti</option><option value="PUSH">PUSH · Petto, spalle e tricipiti</option><option value="LEGS">LEGS · Gambe, polpacci e addome</option></select></div></div>
+    <div class="rf"><div class="field"><label>N° esercizi</label><input type="number" id="w-exn" placeholder="4"></div><div class="field"><label>Serie totali</label><input type="number" id="w-sets" placeholder="12"></div></div>
+    <div class="field"><label>Volume totale (kg)</label><input type="number" id="w-vol" placeholder="850" step="0.5"></div>
     <div class="rf"><div class="field"><label>Training Effect aerobico (0–5)</label><input type="number" id="w-ta" placeholder="1.5" step="0.1" min="0" max="5"></div><div class="field"><label>Training Effect anaerobico (0–5)</label><input type="number" id="w-tn" placeholder="3.0" step="0.1" min="0" max="5"></div></div>
     <button class="btn bwt bfull" onclick="sWt()">Salva sessione</button>
   </div>
@@ -190,26 +188,6 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:10px 0}
       <button class="btn bbr bsm bfull" onclick="sGoal('wt')">Salva obiettivi</button><hr class="sep">
     </div>
     <div id="gd-wt"></div>
-  <div class="panel" id="wt-library">
-    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div class="slabel" style="margin:0">📚 LIBRERIA ESERCIZI</div>
-      <button class="btn bg bsm" onclick="tgForm('lib-panel')">✏️ Gestisci</button>
-    </div>
-    <div id="lib-panel" class="hidden" style="margin-top:10px">
-      <div class="field" style="margin-bottom:8px">
-        <label>Categoria</label>
-        <select id="lib-cat" onchange="rLibList()" style="background:var(--alt);border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--ink);font-size:13.5px;font-family:Inter,sans-serif;outline:none;width:100%">
-          <option value="PULL">PULL · Dorsali, deltoidi e bicipiti</option><option value="PUSH">PUSH · Petto, spalle e tricipiti</option><option value="LEGS">LEGS · Gambe, polpacci e addome</option>
-        </select>
-      </div>
-      <div id="lib-list" style="margin-bottom:10px"></div>
-      <div style="display:flex;gap:8px">
-        <input id="lib-new" placeholder="Nome esercizio" style="background:var(--alt);border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--ink);font-size:13.5px;font-family:Inter,sans-serif;outline:none;flex:1" onkeydown="if(event.key==='Enter')addLibEx()">
-        <button class="btn bwt" onclick="addLibEx()">+ Aggiungi</button>
-      </div>
-    </div>
-  </div>
-  <datalist id="ex-datalist"></datalist>
   <div class="panel" id="wt-breakdown">
     <div class="slabel">VOLUME PER TIPOLOGIA (periodo)</div>
     <div id="wt-bk-rows"></div>
@@ -446,7 +424,7 @@ function setTab(t){
   closeAll();rAll();
 }
 
-const allForms=['f-el','f-wt','f-sw','f-rn','f-bw','f-imp','expP','lib-panel'];
+const allForms=['f-el','f-wt','f-sw','f-rn','f-bw','f-imp','expP'];
 function tgForm(id){
   const el=document.getElementById(id);const was=el.classList.contains('hidden');
   allForms.forEach(f=>{const fe=document.getElementById(f);if(fe)fe.classList.add('hidden');});
@@ -465,8 +443,8 @@ function resetFormFields(short){
     ['e-du','e-ca','e-dk','e-hr','e-hm','e-cd','e-cm','e-in','e-im','e-re','e-rm','e-eg','e-sp','e-ta','e-tn'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
     document.getElementById('e-dt').value=td();
   } else if(short==='wt'){
-    ['w-ca','w-du','w-ta','w-tn'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-    document.getElementById('w-dt').value=td();document.getElementById('w-lb').value='';initEx();
+    ['w-ca','w-du','w-ta','w-tn','w-exn','w-sets','w-vol'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    document.getElementById('w-dt').value=td();document.getElementById('w-lb').value='';
   } else if(short==='sw'){
     ['s-dt2','s-da','s-ca','s-pl','s-hr','s-hm','s-st','s-sw','s-ta','s-tn'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
     document.getElementById('s-dt').value=td();initSwStyles();
@@ -504,9 +482,9 @@ function editW(type,id){
   } else if(type==='weights'){
     document.getElementById('w-dt').value=item.date||'';document.getElementById('w-du').value=item.durationMin||'';
     document.getElementById('w-ca').value=item.calories||'';document.getElementById('w-lb').value=item.label||'';
+    document.getElementById('w-exn').value=item.exerciseCount||(item.exercises?item.exercises.length:'')||'';
+    document.getElementById('w-sets').value=item.totalSets||'';document.getElementById('w-vol').value=item.totalVolume||'';
     document.getElementById('w-ta').value=item.teAerobic||'';document.getElementById('w-tn').value=item.teAnaerobic||'';
-    exR=(item.exercises&&item.exercises.length)?item.exercises.map(e=>({...e})):[{name:'',sets:'',reps:'',weight:''}];
-    updateExDatalist();rEx();
   } else if(type==='swim'){
     document.getElementById('s-dt').value=item.date||'';document.getElementById('s-dt2').value=item.durationMin||'';
     document.getElementById('s-da').value=item.durationActive||'';document.getElementById('s-ca').value=item.calories||'';
@@ -603,56 +581,12 @@ function sBw(){
   toast(isEdit?'✓ Modifiche salvate':'✓ Pesata salvata');rAll();
 }
 
-let exR=[];
-// LIBRARY
-function rLibList(){
-  const cat=document.getElementById('lib-cat')?.value;
-  if(!cat)return;
-  const exs=(db.exercises[cat]||[]);
-  const el=document.getElementById('lib-list');
-  if(!el)return;
-  el.innerHTML=exs.length
-    ?exs.map((ex,i)=>`<div style="display:flex;justify-content:space-between;align-items:center;padding:6px 0;border-bottom:1px solid var(--line);font-size:13px"><span>${ex}</span><button class="del" onclick="removeLibEx('${cat}',${i})">✕</button></div>`).join('')
-    :'<p class="empty" style="font-size:12px">Nessun esercizio. Aggiungine uno.</p>';
-}
-function addLibEx(){
-  const cat=document.getElementById('lib-cat')?.value;
-  const inp=document.getElementById('lib-new');
-  if(!cat||!inp||!inp.value.trim())return;
-  if(!db.exercises[cat])db.exercises[cat]=[];
-  db.exercises[cat].push(inp.value.trim());
-  inp.value='';save();rLibList();updateExDatalist();
-}
-function removeLibEx(cat,idx){
-  db.exercises[cat].splice(idx,1);
-  save();rLibList();updateExDatalist();
-}
-function updateExDatalist(){
-  const cat=document.getElementById('w-lb')?.value||'';
-  const dl=document.getElementById('ex-datalist');
-  if(!dl)return;
-  // current category first, then others
-  const primary=(db.exercises[cat]||[]);
-  const others=Object.entries(db.exercises)
-    .filter(([k])=>k!==cat)
-    .flatMap(([,v])=>v);
-  const all=[...new Set([...primary,...others])];
-  dl.innerHTML=all.map(e=>`<option value="${e}">`).join('');
-}
-
-function initEx(){exR=[{name:'',sets:'',reps:'',weight:''}];updateExDatalist();rEx();}
-function addEx(){exR.push({name:'',sets:'',reps:'',weight:''});rEx();}
-function rEx(){
-  document.getElementById('w-exs').innerHTML=exR.map((ex,i)=>`<div class="exr"><input list="ex-datalist" placeholder="Esercizio" value="${ex.name}" oninput="exR[${i}].name=this.value"><input placeholder="Serie" type="number" value="${ex.sets}" oninput="exR[${i}].sets=this.value;cVol()"><input placeholder="Rip." type="number" value="${ex.reps}" oninput="exR[${i}].reps=this.value;cVol()"><input placeholder="Kg" type="number" step="0.5" value="${ex.weight}" oninput="exR[${i}].weight=this.value;cVol()"><button class="del" onclick="exR.splice(${i},1);rEx()">✕</button></div>`).join('');cVol();
-}
-function cVol(){const v=exR.reduce((s,e)=>s+n(e.sets)*n(e.reps)*n(e.weight),0);document.getElementById('w-vol').textContent=Math.round(v*10)/10;}
-
 function sWt(){
-  const vol=exR.reduce((s,e)=>s+n(e.sets)*n(e.reps)*n(e.weight),0);
   const w={id:(editing.type==='weights'&&editing.id)?editing.id:uid(),type:'weights',date:document.getElementById('w-dt').value||td(),
     durationMin:n(document.getElementById('w-du').value),calories:n(document.getElementById('w-ca').value),
     label:document.getElementById('w-lb').value,
-    exercises:exR.filter(e=>e.name),totalVolume:Math.round(vol*10)/10,
+    exerciseCount:n(document.getElementById('w-exn').value),totalSets:n(document.getElementById('w-sets').value),
+    totalVolume:n(document.getElementById('w-vol').value),
     teAerobic:n(document.getElementById('w-ta').value),teAnaerobic:n(document.getElementById('w-tn').value)};
   if(editing.type==='weights'&&editing.id){const idx=db.weights.findIndex(x=>x.id===editing.id);if(idx>-1)db.weights[idx]=w;else db.weights.push(w);}
   else db.weights.push(w);
@@ -812,7 +746,13 @@ function importCsv(text){
       if(r.distanza_km)w.distanceKm=parseFloat(r.distanza_km);
       if(r.fc_media)w.avgHR=parseFloat(r.fc_media);
       if(r.fc_max)w.maxHR=parseFloat(r.fc_max);
-      if(tp==='weights'&&r.note)w.label=r.note;
+      if(tp==='weights'&&r.note){
+        const parts=r.note.split('·').map(s=>s.trim());
+        if(parts[0])w.label=parts[0];
+        const exn=r.note.match(/(\d+)\s*es\./);if(exn)w.exerciseCount=parseInt(exn[1]);
+        const sets=r.note.match(/(\d+)\s*serie/);if(sets)w.totalSets=parseInt(sets[1]);
+        const vol=r.note.match(/([\d.]+)\s*kg/);if(vol)w.totalVolume=parseFloat(vol[1]);
+      }
       if(tp==='run'&&r.note)w.activityType=r.note;
       const dup=db[tp].find(x=>x.date===w.date&&(x.durationMin||0)===(w.durationMin||0)&&(x.calories||0)===(w.calories||0));
       if(dup){skipped++;return;}
@@ -931,7 +871,13 @@ function exportCsv(){
   const rows=[['tipo','data','durata_min','calorie','distanza_km','fc_media','fc_max','note']];
   const push=(t,d)=>rows.push([t,d.date,d.durationMin||'',d.calories||'',d.distanceKm||d.distanceM&&(d.distanceM/1000)||'',d.avgHR||'',d.maxHR||'',(d.activityType||d.label||'')]);
   db.elliptical.forEach(d=>push('Ellittica',d));
-  db.weights.forEach(d=>push('Pesi',d));
+  db.weights.forEach(d=>{
+    const bits=[d.label||''];
+    if(d.exerciseCount)bits.push(d.exerciseCount+' es.');
+    if(d.totalSets)bits.push(d.totalSets+' serie');
+    if(d.totalVolume)bits.push(d.totalVolume+'kg');
+    rows.push(['Pesi',d.date,d.durationMin||'',d.calories||'','','','',bits.filter(Boolean).join(' · ')]);
+  });
   db.swim.forEach(d=>push('Nuoto',d));
   db.run.forEach(d=>push('Outdoor',d));
   db.bw.forEach(d=>{
@@ -1072,7 +1018,7 @@ function rBwSum(){
 function rWtRows(){
   const el=document.getElementById('wt-rows'),d=[...db.weights].reverse();
   if(!d.length){el.innerHTML='<p class="empty">Nessuna sessione.</p>';return;}
-  el.innerHTML=d.map(w=>`<div class="row"><div><div class="rd">${fmtDate(w.date)}${w.label?' · <span style="color:var(--wt);font-size:11px;font-weight:600">'+w.label+'</span>':''}</div><div class="chips">${w.durationMin?chip('⏱',fmtMin(w.durationMin),''):''}${w.calories?chip('🔥',w.calories,'kcal'):''}${(w.exercises||[]).length?chip('🏋',w.exercises.length,'es.'):''}${w.totalVolume?chip('📊',w.totalVolume,'kg'):''}${w.teAerobic?chip('💚','A'+w.teAerobic+'/An'+(w.teAnaerobic||0),'TE'):''}</div></div><div style="display:flex"><button class="del" onclick="editW('weights','${w.id}')">✏️</button><button class="del" onclick="delW('weights','${w.id}')">🗑</button></div></div>`).join('');
+  el.innerHTML=d.map(w=>`<div class="row"><div><div class="rd">${fmtDate(w.date)}${w.label?' · <span style="color:var(--wt);font-size:11px;font-weight:600">'+w.label+'</span>':''}</div><div class="chips">${w.durationMin?chip('⏱',fmtMin(w.durationMin),''):''}${w.calories?chip('🔥',w.calories,'kcal'):''}${w.exerciseCount?chip('🏋',w.exerciseCount,'es.'):((w.exercises||[]).length?chip('🏋',w.exercises.length,'es.'):'')}${w.totalSets?chip('🔁',w.totalSets,'serie'):''}${w.totalVolume?chip('📊',w.totalVolume,'kg'):''}${w.teAerobic?chip('💚','A'+w.teAerobic+'/An'+(w.teAnaerobic||0),'TE'):''}</div></div><div style="display:flex"><button class="del" onclick="editW('weights','${w.id}')">✏️</button><button class="del" onclick="delW('weights','${w.id}')">🗑</button></div></div>`).join('');
 }
 function rSwRows(){
   const el=document.getElementById('sw-rows'),d=[...db.swim].reverse();
@@ -1189,7 +1135,7 @@ function rAll(){
 document.addEventListener('DOMContentLoaded',()=>{
   load();
   ['e-dt','w-dt','s-dt','r-dt','b-dt'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=td();});
-  initEx();initSwStyles();rLibList();updateExDatalist();setF('week');
+  initSwStyles();setF('week');
   // Show native file picker button when running in Android WebView
   if(window.Android){
     const btn=document.getElementById('imp-android-btn');
