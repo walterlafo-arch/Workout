@@ -64,6 +64,7 @@ html,body{background:var(--bg);color:var(--ink);font-family:Inter,sans-serif;min
 .field input:focus,.field select:focus,.field textarea:focus{border-color:var(--brass)}
 .rf{display:flex;gap:10px}
 .exr{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:5px;margin-bottom:5px;align-items:center}
+.mxr{display:grid;grid-template-columns:2fr 1fr 1fr auto;gap:5px;margin-bottom:5px;align-items:center}
 .exr input{background:var(--alt);border:1px solid var(--line);border-radius:6px;padding:7px 7px;color:var(--ink);font-size:12px;font-family:Inter,sans-serif;outline:none;width:100%}
 .btn{border-radius:7px;padding:9px 14px;font-size:13px;font-weight:600;cursor:pointer;font-family:Inter,sans-serif;border:1px solid var(--line)}
 .bg{background:transparent;color:var(--ink)}.bel{background:var(--ell);color:#14181C;border:none}.bwt{background:var(--wt);color:#fff;border:none}.bsw{background:var(--sw);color:#fff;border:none}.brn{background:var(--run);color:#fff;border:none}.bbr{background:var(--brass);color:#14181C;border:none}
@@ -174,10 +175,10 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:10px 0}
   <div id="f-wt" class="panel p-wt hidden">
     <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--wt);margin-bottom:12px">Nuova sessione · Pesi</div>
     <div class="rf"><div class="field"><label>Data</label><input type="date" id="w-dt"></div><div class="field"><label>Durata (min)</label><input type="number" id="w-du" placeholder="60"></div></div>
-    <div class="rf"><div class="field"><label>Calorie</label><input type="number" id="w-ca" placeholder="300"></div>
-    <div class="field"><label>Tipologia</label><select id="w-lb" style="background:var(--alt);border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--ink);font-size:13.5px;font-family:Inter,sans-serif;outline:none;width:100%"><option value="">— Seleziona —</option><option value="PULL">PULL · Dorsali, deltoidi e bicipiti</option><option value="PUSH">PUSH · Petto, spalle e tricipiti</option><option value="LEGS">LEGS · Gambe, polpacci e addome</option></select></div></div>
-    <div class="rf"><div class="field"><label>N° esercizi</label><input type="number" id="w-exn" placeholder="4"></div><div class="field"><label>Serie totali</label><input type="number" id="w-sets" placeholder="12"></div></div>
-    <div class="field"><label>Volume totale (kg)</label><input type="number" id="w-vol" placeholder="850" step="0.5"></div>
+    <div class="rf"><div class="field"><label>Calorie</label><input type="number" id="w-ca" placeholder="300"></div></div>
+    <div class="slabel" style="margin-top:4px">Gruppi muscolari allenati</div>
+    <div id="w-musc"></div>
+    <button class="btn bg bsm" onclick="addWtMuscle()" style="margin-bottom:10px">+ aggiungi gruppo muscolare</button>
     <div class="rf"><div class="field"><label>Training Effect aerobico (0–5)</label><input type="number" id="w-ta" placeholder="1.5" step="0.1" min="0" max="5"></div><div class="field"><label>Training Effect anaerobico (0–5)</label><input type="number" id="w-tn" placeholder="3.0" step="0.1" min="0" max="5"></div></div>
     <button class="btn bwt bfull" onclick="sWt()">Salva sessione</button>
   </div>
@@ -189,7 +190,7 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:10px 0}
     </div>
     <div id="gd-wt"></div>
   <div class="panel" id="wt-breakdown">
-    <div class="slabel">VOLUME PER TIPOLOGIA (periodo)</div>
+    <div class="slabel">VOLUME PER GRUPPO MUSCOLARE (periodo)</div>
     <div id="wt-bk-rows"></div>
   </div>
   <div class="panel" id="ch-wt">
@@ -245,7 +246,7 @@ hr.sep{border:none;border-top:1px solid var(--line);margin:10px 0}
   <div class="ar"><button class="btn brn bfull" onclick="openNewForm('rn')">+ Aggiungi sessione</button></div>
   <div id="f-rn" class="panel p-rn hidden">
     <div style="font-family:'IBM Plex Mono',monospace;font-size:13px;color:var(--run);margin-bottom:12px">Nuova sessione · Outdoor</div>
-    <div class="field"><label>Tipo attività</label><select id="r-at" style="background:var(--alt);border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--ink);font-size:13.5px;font-family:Inter,sans-serif;outline:none;width:100%"><option value="Corsa">🏃 Corsa</option><option value="Camminata">🚶 Camminata</option><option value="Hiking">🥾 Hiking</option><option value="Kayak">🛶 Kayak</option><option value="Ciclismo">🚴 Ciclismo</option><option value="Altro">⚡ Altro</option></select></div>
+    <div class="field"><label>Tipo attività</label><select id="r-at" style="background:var(--alt);border:1px solid var(--line);border-radius:6px;padding:8px 10px;color:var(--ink);font-size:13.5px;font-family:Inter,sans-serif;outline:none;width:100%"><option value="Corsa">🏃 Corsa</option><option value="Camminata">🚶 Camminata</option><option value="Hiking">🥾 Hiking</option><option value="Kayak">🛶 Kayak</option><option value="Ciclismo">🚴 Ciclismo</option><option value="Padel">🏓 Padel</option><option value="Altro">⚡ Altro</option></select></div>
     <div class="rf"><div class="field"><label>Data</label><input type="date" id="r-dt"></div><div class="field"><label>Durata (min)</label><input type="number" id="r-du" placeholder="45"></div></div>
     <div class="rf"><div class="field"><label>Distanza (km)</label><input type="number" id="r-dk" placeholder="5.0" step="0.01"></div><div class="field"><label>Calorie</label><input type="number" id="r-ca" placeholder="400"></div></div>
     <div class="rf"><div class="field"><label>Ritmo medio (min/km)</label><input type="text" id="r-pa" placeholder="5:30"></div><div class="field"><label>Velocità media (km/h)</label><input type="number" id="r-sp" placeholder="10.8" step="0.1"></div></div>
@@ -443,8 +444,8 @@ function resetFormFields(short){
     ['e-du','e-ca','e-dk','e-hr','e-hm','e-cd','e-cm','e-in','e-im','e-re','e-rm','e-eg','e-sp','e-ta','e-tn'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
     document.getElementById('e-dt').value=td();
   } else if(short==='wt'){
-    ['w-ca','w-du','w-ta','w-tn','w-exn','w-sets','w-vol'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
-    document.getElementById('w-dt').value=td();document.getElementById('w-lb').value='';
+    ['w-ca','w-du','w-ta','w-tn'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+    document.getElementById('w-dt').value=td();initWtMuscles();
   } else if(short==='sw'){
     ['s-dt2','s-da','s-ca','s-pl','s-hr','s-hm','s-st','s-sw','s-ta','s-tn'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
     document.getElementById('s-dt').value=td();initSwStyles();
@@ -481,10 +482,17 @@ function editW(type,id){
     document.getElementById('e-ta').value=item.teAerobic||'';document.getElementById('e-tn').value=item.teAnaerobic||'';
   } else if(type==='weights'){
     document.getElementById('w-dt').value=item.date||'';document.getElementById('w-du').value=item.durationMin||'';
-    document.getElementById('w-ca').value=item.calories||'';document.getElementById('w-lb').value=item.label||'';
-    document.getElementById('w-exn').value=item.exerciseCount||(item.exercises?item.exercises.length:'')||'';
-    document.getElementById('w-sets').value=item.totalSets||'';document.getElementById('w-vol').value=item.totalVolume||'';
+    document.getElementById('w-ca').value=item.calories||'';
     document.getElementById('w-ta').value=item.teAerobic||'';document.getElementById('w-tn').value=item.teAnaerobic||'';
+    if(item.muscles&&item.muscles.length){
+      wtMuscleRows=item.muscles.map(m=>({muscle:m.muscle,sets:m.sets||'',kg:m.kg||''}));
+    } else if(item.label){
+      // sessione vecchia (formato precedente a tipologia PULL/PUSH/LEGS): la mostro come riga unica generica
+      wtMuscleRows=[{muscle:'',sets:item.totalSets||'',kg:item.totalVolume||''}];
+    } else {
+      wtMuscleRows=[{muscle:'',sets:'',kg:''}];
+    }
+    rWtMuscles();
   } else if(type==='swim'){
     document.getElementById('s-dt').value=item.date||'';document.getElementById('s-dt2').value=item.durationMin||'';
     document.getElementById('s-da').value=item.durationActive||'';document.getElementById('s-ca').value=item.calories||'';
@@ -581,12 +589,26 @@ function sBw(){
   toast(isEdit?'✓ Modifiche salvate':'✓ Pesata salvata');rAll();
 }
 
+const MUSCLE_GROUPS=['Pettorali','Dorsali','Spalle','Bicipiti','Tricipiti','Quadricipiti','Femorali','Glutei','Polpacci','Addome'];
+let wtMuscleRows=[];
+function initWtMuscles(){wtMuscleRows=[{muscle:'',sets:'',kg:''}];rWtMuscles();}
+function addWtMuscle(){wtMuscleRows.push({muscle:'',sets:'',kg:''});rWtMuscles();}
+function rWtMuscles(){
+  const opts=MUSCLE_GROUPS.map(m=>`<option value="${m}">${m}</option>`).join('');
+  document.getElementById('w-musc').innerHTML=wtMuscleRows.map((r,i)=>`<div class="mxr">
+    <select onchange="wtMuscleRows[${i}].muscle=this.value" style="background:var(--alt);border:1px solid var(--line);border-radius:6px;padding:7px 6px;color:var(--ink);font-size:12.5px;font-family:Inter,sans-serif;outline:none"><option value="">— gruppo —</option>${opts.replace('value="'+r.muscle+'"','value="'+r.muscle+'" selected')}</select>
+    <input placeholder="Serie" type="number" value="${r.sets}" oninput="wtMuscleRows[${i}].sets=this.value">
+    <input placeholder="Kg" type="number" step="0.5" value="${r.kg}" oninput="wtMuscleRows[${i}].kg=this.value">
+    <button class="del" onclick="wtMuscleRows.splice(${i},1);rWtMuscles()">✕</button>
+  </div>`).join('');
+}
 function sWt(){
+  const muscles=wtMuscleRows.filter(r=>r.muscle).map(r=>({muscle:r.muscle,sets:n(r.sets),kg:n(r.kg)}));
+  const totalSets=muscles.reduce((s,r)=>s+(r.sets||0),0);
+  const totalVolume=muscles.reduce((s,r)=>s+(r.kg||0),0);
   const w={id:(editing.type==='weights'&&editing.id)?editing.id:uid(),type:'weights',date:document.getElementById('w-dt').value||td(),
     durationMin:n(document.getElementById('w-du').value),calories:n(document.getElementById('w-ca').value),
-    label:document.getElementById('w-lb').value,
-    exerciseCount:n(document.getElementById('w-exn').value),totalSets:n(document.getElementById('w-sets').value),
-    totalVolume:n(document.getElementById('w-vol').value),
+    muscles,totalSets,totalVolume,
     teAerobic:n(document.getElementById('w-ta').value),teAnaerobic:n(document.getElementById('w-tn').value)};
   if(editing.type==='weights'&&editing.id){const idx=db.weights.findIndex(x=>x.id===editing.id);if(idx>-1)db.weights[idx]=w;else db.weights.push(w);}
   else db.weights.push(w);
@@ -710,58 +732,103 @@ function parseCsvLine(line,delim){
   }
   res.push(cur);return res;
 }
-function parseCsv(text){
-  const lines=text.split(/\r?\n/).filter(l=>l.trim().length);
-  if(!lines.length)return[];
-  const delim=lines[0].includes(';')?';':',';
-  const header=parseCsvLine(lines[0],delim).map(h=>h.trim().toLowerCase());
-  return lines.slice(1).map(l=>{
-    const cols=parseCsvLine(l,delim);const row={};
-    header.forEach((h,i)=>row[h]=(cols[i]!==undefined?cols[i]:'').trim());
-    return row;
+function parseCsvSections(text){
+  // uno o più blocchi separati da una riga vuota, ciascuno con la propria intestazione
+  // (supporta sia il vecchio formato a tabella unica sia il nuovo a sezioni per tipo)
+  const blocks=text.replace(/\r/g,'').split(/\n\s*\n/).map(b=>b.trim()).filter(Boolean);
+  let allRows=[];
+  blocks.forEach(block=>{
+    const lines=block.split('\n').filter(l=>l.trim().length);
+    if(!lines.length)return;
+    const delim=lines[0].includes(';')?';':',';
+    const header=parseCsvLine(lines[0],delim).map(h=>h.trim().toLowerCase());
+    lines.slice(1).forEach(l=>{
+      const cols=parseCsvLine(l,delim);const row={};
+      header.forEach((h,i)=>row[h]=(cols[i]!==undefined?cols[i]:'').trim());
+      allRows.push(row);
+    });
   });
+  return allRows;
 }
 const CSV_TYPE_MAP={'Ellittica':'elliptical','Pesi':'weights','Nuoto':'swim','Outdoor':'run','Peso':'bw'};
+function numOrUndef(v){if(v===undefined||v===null||v==='')return undefined;const x=parseFloat(v);return isNaN(x)?undefined:x;}
 function importCsv(text){
-  const rows=parseCsv(text);
+  const rows=parseCsvSections(text);
   let added=0,skipped=0;
   rows.forEach(r=>{
     const tp=CSV_TYPE_MAP[r.tipo];
     if(!tp||!r.data)return;
-    if(tp==='bw'){
-      const note=r.note||'';
-      const kg=note.match(/([\d.]+)\s*kg/);
-      if(!kg)return;
-      const w={id:uid(),type:'bw',date:r.data,weightKg:parseFloat(kg[1])};
-      const bmi=note.match(/BMI\s*([\d.]+)/);if(bmi)w.bmi=parseFloat(bmi[1]);
-      const fat=note.match(/([\d.]+)%\s*grasso/);if(fat)w.bodyFatPct=parseFloat(fat[1]);
-      const musc=note.match(/([\d.]+)%\s*musc/);if(musc)w.musclePct=parseFloat(musc[1]);
-      const wat=note.match(/([\d.]+)%\s*acqua/);if(wat)w.waterPct=parseFloat(wat[1]);
-      if(db.bw.find(x=>x.date===w.date)){skipped++;return;}
-      db.bw.push(w);added++;
-    } else {
-      const w={id:uid(),type:tp,date:r.data};
-      if(r.durata_min)w.durationMin=parseFloat(r.durata_min);
-      if(r.calorie)w.calories=parseFloat(r.calorie);
-      if(r.distanza_km)w.distanceKm=parseFloat(r.distanza_km);
-      if(r.fc_media)w.avgHR=parseFloat(r.fc_media);
-      if(r.fc_max)w.maxHR=parseFloat(r.fc_max);
-      if(tp==='weights'&&r.note){
-        const parts=r.note.split('·').map(s=>s.trim());
+    const w={id:uid(),type:tp,date:r.data};
+    const setIf=(key,col)=>{const v=numOrUndef(r[col]);if(v!==undefined)w[key]=v;};
+    if(tp==='elliptical'){
+      setIf('durationMin','durata_min');setIf('calories','calorie');setIf('distanceKm','distanza_km');
+      setIf('avgHR','fc_media');setIf('maxHR','fc_max');setIf('cadenceAvg','cadenza_media');setIf('cadenceMax','cadenza_max');
+      setIf('inclineAvg','inclinazione_media_%');setIf('inclineMax','inclinazione_max_%');
+      setIf('resistanceAvg','resistenza_media_15');setIf('resistanceMax','resistenza_max_15');
+      setIf('elevationGain','dislivello_m');setIf('avgSpeed','velocita_media_kmh');
+      setIf('teAerobic','te_aerobico');setIf('teAnaerobic','te_anaerobico');
+    } else if(tp==='weights'){
+      setIf('durationMin','durata_min');setIf('calories','calorie');
+      setIf('totalSets','serie_tot');setIf('totalVolume','volume_tot_kg');
+      setIf('teAerobic','te_aerobico');setIf('teAnaerobic','te_anaerobico');
+      if(r.gruppi_muscolari){
+        w.muscles=r.gruppi_muscolari.split('|').map(s=>s.trim()).filter(Boolean).map(s=>{
+          const m=s.match(/^(.+?):(\d+)x([\d.]+)kg$/);
+          if(!m)return null;
+          return{muscle:m[1],sets:parseInt(m[2]),kg:parseFloat(m[3])};
+        }).filter(Boolean);
+      } else if(r.tipologia){
+        // vecchio formato (prima dei gruppi muscolari): tengo la tipologia come etichetta legacy
+        w.label=r.tipologia;
+        setIf('exerciseCount','n_esercizi');
+      } else if(r.note){
+        const parts=r.note.split('\u00b7').map(s=>s.trim());
         if(parts[0])w.label=parts[0];
         const exn=r.note.match(/(\d+)\s*es\./);if(exn)w.exerciseCount=parseInt(exn[1]);
         const sets=r.note.match(/(\d+)\s*serie/);if(sets)w.totalSets=parseInt(sets[1]);
         const vol=r.note.match(/([\d.]+)\s*kg/);if(vol)w.totalVolume=parseFloat(vol[1]);
       }
-      if(tp==='run'&&r.note)w.activityType=r.note;
-      const dup=db[tp].find(x=>x.date===w.date&&(x.durationMin||0)===(w.durationMin||0)&&(x.calories||0)===(w.calories||0));
-      if(dup){skipped++;return;}
-      db[tp].push(w);added++;
+    } else if(tp==='swim'){
+      setIf('durationMin','durata_tot_min');setIf('durationActive','durata_eff_min');setIf('calories','calorie');
+      setIf('distanceM','distanza_m');setIf('totalLaps','vasche');setIf('avgHR','fc_media');setIf('maxHR','fc_max');
+      setIf('totalStrokes','bracciate_tot');setIf('swolfAvg','swolf_medio');
+      if(r.passo_100m)w.avgPace100=r.passo_100m;
+      setIf('teAerobic','te_aerobico');setIf('teAnaerobic','te_anaerobico');
+      if(r.stili){
+        w.styles=r.stili.split('|').map(s=>s.trim()).filter(Boolean).map(s=>{
+          const m=s.match(/(\d+)v\s+(\S+)(?:\s+([\d:]+)\/100m)?/);
+          if(!m)return null;
+          return{style:m[2],laps:parseInt(m[1]),pace100:m[3]||''};
+        }).filter(Boolean);
+      }
+    } else if(tp==='run'){
+      if(r.attivita)w.activityType=r.attivita;
+      setIf('durationMin','durata_min');setIf('calories','calorie');setIf('distanceKm','distanza_km');
+      setIf('avgSpeed','velocita_media_kmh');if(r.ritmo_min_km)w.avgPace=r.ritmo_min_km;
+      setIf('elevationGain','dislivello_m');setIf('avgHR','fc_media');setIf('maxHR','fc_max');
+      setIf('teAerobic','te_aerobico');setIf('teAnaerobic','te_anaerobico');
+      if(!w.activityType&&r.note)w.activityType=r.note;
+    } else if(tp==='bw'){
+      setIf('weightKg','peso_kg');setIf('bmi','bmi');setIf('bodyFatPct','grasso_%');
+      setIf('musclePct','muscolo_%');setIf('waterPct','acqua_%');
+      if(w.weightKg===undefined&&r.note){
+        const kg=r.note.match(/([\d.]+)\s*kg/);if(kg)w.weightKg=parseFloat(kg[1]);
+        const bmi=r.note.match(/BMI\s*([\d.]+)/);if(bmi)w.bmi=parseFloat(bmi[1]);
+        const fat=r.note.match(/([\d.]+)%\s*grasso/);if(fat)w.bodyFatPct=parseFloat(fat[1]);
+        const musc=r.note.match(/([\d.]+)%\s*musc/);if(musc)w.musclePct=parseFloat(musc[1]);
+        const wat=r.note.match(/([\d.]+)%\s*acqua/);if(wat)w.waterPct=parseFloat(wat[1]);
+      }
+      if(w.weightKg===undefined)return;
     }
+    let dup;
+    if(tp==='bw')dup=db.bw.find(x=>x.date===w.date);
+    else dup=db[tp].find(x=>x.date===w.date&&(x.durationMin||0)===(w.durationMin||0)&&(x.calories||0)===(w.calories||0));
+    if(dup){skipped++;return;}
+    db[tp].push(w);added++;
   });
   ['elliptical','weights','swim','run','bw'].forEach(t=>db[t].sort((a,b)=>a.date.localeCompare(b.date)));
   save();
-  toast('✓ '+added+' sessioni importate da CSV'+(skipped?' ('+skipped+' scartate perché già presenti)':''));
+  toast('\u2713 '+added+' sessioni importate da CSV'+(skipped?' ('+skipped+' scartate perch\u00e9 gi\u00e0 presenti)':''));
   rAll();
   return added;
 }
@@ -868,28 +935,40 @@ function updateBackupLabel(saved,name){
   }
 }
 function exportCsv(){
-  const rows=[['tipo','data','durata_min','calorie','distanza_km','fc_media','fc_max','note']];
-  const push=(t,d)=>rows.push([t,d.date,d.durationMin||'',d.calories||'',d.distanceKm||d.distanceM&&(d.distanceM/1000)||'',d.avgHR||'',d.maxHR||'',(d.activityType||d.label||'')]);
-  db.elliptical.forEach(d=>push('Ellittica',d));
-  db.weights.forEach(d=>{
-    const bits=[d.label||''];
-    if(d.exerciseCount)bits.push(d.exerciseCount+' es.');
-    if(d.totalSets)bits.push(d.totalSets+' serie');
-    if(d.totalVolume)bits.push(d.totalVolume+'kg');
-    rows.push(['Pesi',d.date,d.durationMin||'',d.calories||'','','','',bits.filter(Boolean).join(' · ')]);
-  });
-  db.swim.forEach(d=>push('Nuoto',d));
-  db.run.forEach(d=>push('Outdoor',d));
-  db.bw.forEach(d=>{
-    const note=[d.weightKg+'kg',d.bmi?'BMI '+d.bmi:'',d.bodyFatPct?d.bodyFatPct+'% grasso':'',d.musclePct?d.musclePct+'% musc.':'',d.waterPct?d.waterPct+'% acqua':''].filter(Boolean).join(' · ');
-    rows.push(['Peso',d.date,'','','','','',note]);
-  });
-  const csv=rows.map(r=>r.map(v=>{const s=String(v);return /[",;\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(';')).join('\n');
+  const sections=[];
+  const csvLine=r=>r.map(v=>{const s=String(v===null||v===undefined?'':v);return /["\;,\n]/.test(s)?'"'+s.replace(/"/g,'""')+'"':s;}).join(';');
+  if(db.elliptical.length){
+    const hdr=['tipo','data','durata_min','calorie','distanza_km','fc_media','fc_max','cadenza_media','cadenza_max','inclinazione_media_%','inclinazione_max_%','resistenza_media_15','resistenza_max_15','dislivello_m','velocita_media_kmh','te_aerobico','te_anaerobico'];
+    const rows=db.elliptical.map(d=>['Ellittica',d.date,Math.round(d.durationMin||0),d.calories||'',d.distanceKm||'',d.avgHR||'',d.maxHR||'',d.cadenceAvg||'',d.cadenceMax||'',d.inclineAvg||'',d.inclineMax||'',d.resistanceAvg||'',d.resistanceMax||'',d.elevationGain||'',d.avgSpeed||'',d.teAerobic||'',d.teAnaerobic||'']);
+    sections.push([hdr,...rows].map(csvLine).join('\n'));
+  }
+  if(db.weights.length){
+    const hdr=['tipo','data','durata_min','calorie','serie_tot','volume_tot_kg','te_aerobico','te_anaerobico','gruppi_muscolari'];
+    const rows=db.weights.map(d=>['Pesi',d.date,Math.round(d.durationMin||0),d.calories||'',d.totalSets||'',d.totalVolume||'',d.teAerobic||'',d.teAnaerobic||'',(d.muscles||[]).map(m=>m.muscle+':'+(m.sets||0)+'x'+(m.kg||0)+'kg').join(' | ')]);
+    sections.push([hdr,...rows].map(csvLine).join('\n'));
+  }
+  if(db.swim.length){
+    const hdr=['tipo','data','durata_tot_min','durata_eff_min','calorie','distanza_m','vasche','fc_media','fc_max','bracciate_tot','swolf_medio','passo_100m','te_aerobico','te_anaerobico','stili'];
+    const rows=db.swim.map(d=>['Nuoto',d.date,Math.round(d.durationMin||0),Math.round(d.durationActive||d.durationMin||0),d.calories||'',d.distanceM||'',d.totalLaps||'',d.avgHR||'',d.maxHR||'',d.totalStrokes||'',d.swolfAvg||'',d.avgPace100||'',d.teAerobic||'',d.teAnaerobic||'',(d.styles||[]).map(s=>s.laps+'v '+s.style+(s.pace100?' '+s.pace100+'/100m':'')).join(' | ')]);
+    sections.push([hdr,...rows].map(csvLine).join('\n'));
+  }
+  if(db.run.length){
+    const hdr=['tipo','data','attivita','durata_min','calorie','distanza_km','velocita_media_kmh','ritmo_min_km','dislivello_m','fc_media','fc_max','te_aerobico','te_anaerobico'];
+    const rows=db.run.map(d=>['Outdoor',d.date,d.activityType||'Corsa',Math.round(d.durationMin||0),d.calories||'',d.distanceKm||'',d.avgSpeed||'',d.avgPace||'',d.elevationGain||'',d.avgHR||'',d.maxHR||'',d.teAerobic||'',d.teAnaerobic||'']);
+    sections.push([hdr,...rows].map(csvLine).join('\n'));
+  }
+  if(db.bw&&db.bw.length){
+    const hdr=['tipo','data','peso_kg','bmi','grasso_%','muscolo_%','acqua_%'];
+    const rows=db.bw.map(d=>['Peso',d.date,d.weightKg||'',d.bmi||'',d.bodyFatPct||'',d.musclePct||'',d.waterPct||'']);
+    sections.push([hdr,...rows].map(csvLine).join('\n'));
+  }
+  const csv=sections.join('\n\n');
+  const dstamp=new Date().toISOString().slice(0,10);
   if(window.Android && window.Android.saveCsv){
     window.Android.saveCsv(csv);
   } else {
-    const blob=new Blob([csv],{type:'text/csv'});
-    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='LogDiBordo_export.csv';a.click();
+    const blob=new Blob(['\uFEFF'+csv],{type:'text/csv;charset=utf-8'});
+    const a=document.createElement('a');a.href=URL.createObjectURL(blob);a.download='LogDiBordo_completo_'+dstamp+'.csv';a.click();
   }
 }
 
@@ -989,7 +1068,7 @@ function chip(ic,v,u){return`<span class="chip">${ic} <span class="cv">${v}</spa
 function rElRows(){
   const el=document.getElementById('el-rows'),d=[...db.elliptical].reverse();
   if(!d.length){el.innerHTML='<p class="empty">Nessuna sessione.</p>';return;}
-  el.innerHTML=d.map(w=>`<div class="row"><div><div class="rd">${w.activityType||'Corsa'} · ${fmtDate(w.date)}</div><div class="chips">${w.durationMin?chip('⏱',fmtMin(w.durationMin),''):''}${w.calories?chip('🔥',w.calories,'kcal'):''}${w.distanceKm?chip('📍',w.distanceKm,'km'):''}${w.avgSpeed?chip('⚡',w.avgSpeed,'km/h'):''}${w.avgHR?chip('♥',w.avgHR,'bpm'):''}${w.cadenceAvg?chip('↻',w.cadenceAvg,'rpm'):''}${w.resistanceAvg?chip('⚙',w.resistanceAvg+'/15',''):''}${w.inclineAvg?chip('∧',w.inclineAvg+'%',''):''}${w.elevationGain?chip('⛰',w.elevationGain,'m D+'):''}${w.teAerobic?chip('💚','A'+w.teAerobic+'/An'+(w.teAnaerobic||0),'TE'):''}
+  el.innerHTML=d.map(w=>`<div class="row"><div><div class="rd">${fmtDate(w.date)}</div><div class="chips">${w.durationMin?chip('⏱',fmtMin(w.durationMin),''):''}${w.calories?chip('🔥',w.calories,'kcal'):''}${w.distanceKm?chip('📍',w.distanceKm,'km'):''}${w.avgSpeed?chip('⚡',w.avgSpeed,'km/h'):''}${w.avgHR?chip('♥',w.avgHR,'bpm'):''}${w.cadenceAvg?chip('↻',w.cadenceAvg,'rpm'):''}${w.resistanceAvg?chip('⚙',w.resistanceAvg+'/15',''):''}${w.inclineAvg?chip('∧',w.inclineAvg+'%',''):''}${w.elevationGain?chip('⛰',w.elevationGain,'m D+'):''}${w.teAerobic?chip('💚','A'+w.teAerobic+'/An'+(w.teAnaerobic||0),'TE'):''}
     </div></div><div style="display:flex"><button class="del" onclick="editW('elliptical','${w.id}')">✏️</button><button class="del" onclick="delW('elliptical','${w.id}')">🗑</button></div></div>`).join('');
 }
 function rBwRows(){
@@ -1018,7 +1097,10 @@ function rBwSum(){
 function rWtRows(){
   const el=document.getElementById('wt-rows'),d=[...db.weights].reverse();
   if(!d.length){el.innerHTML='<p class="empty">Nessuna sessione.</p>';return;}
-  el.innerHTML=d.map(w=>`<div class="row"><div><div class="rd">${fmtDate(w.date)}${w.label?' · <span style="color:var(--wt);font-size:11px;font-weight:600">'+w.label+'</span>':''}</div><div class="chips">${w.durationMin?chip('⏱',fmtMin(w.durationMin),''):''}${w.calories?chip('🔥',w.calories,'kcal'):''}${w.exerciseCount?chip('🏋',w.exerciseCount,'es.'):((w.exercises||[]).length?chip('🏋',w.exercises.length,'es.'):'')}${w.totalSets?chip('🔁',w.totalSets,'serie'):''}${w.totalVolume?chip('📊',w.totalVolume,'kg'):''}${w.teAerobic?chip('💚','A'+w.teAerobic+'/An'+(w.teAnaerobic||0),'TE'):''}</div></div><div style="display:flex"><button class="del" onclick="editW('weights','${w.id}')">✏️</button><button class="del" onclick="delW('weights','${w.id}')">🗑</button></div></div>`).join('');
+  el.innerHTML=d.map(w=>{
+    const muscNames=(w.muscles||[]).map(m=>m.muscle).filter(Boolean).join(', ');
+    return`<div class="row"><div><div class="rd">${fmtDate(w.date)}${muscNames?' · <span style="color:var(--wt);font-size:11px;font-weight:600">'+muscNames+'</span>':(w.label?' · <span style="color:var(--wt);font-size:11px;font-weight:600">'+w.label+'</span>':'')}</div><div class="chips">${w.durationMin?chip('⏱',fmtMin(w.durationMin),''):''}${w.calories?chip('🔥',w.calories,'kcal'):''}${w.totalSets?chip('🔁',w.totalSets,'serie'):''}${w.totalVolume?chip('📊',w.totalVolume,'kg'):''}${w.teAerobic?chip('💚','A'+w.teAerobic+'/An'+(w.teAnaerobic||0),'TE'):''}</div></div><div style="display:flex"><button class="del" onclick="editW('weights','${w.id}')">✏️</button><button class="del" onclick="delW('weights','${w.id}')">🗑</button></div></div>`;
+  }).join('');
 }
 function rSwRows(){
   const el=document.getElementById('sw-rows'),d=[...db.swim].reverse();
@@ -1116,18 +1198,20 @@ function rAll(){
   // goals
 
   // discipline rows & charts
-  // weights label breakdown
-  const labels=['PULL','PUSH','LEGS'];
+  // weights muscle-group breakdown
   const wtFilt=filt(db.weights);
-  const bkRows=labels.map(lb=>{
-    const sessions=wtFilt.filter(w=>w.label===lb);
-    if(!sessions.length)return'';
-    const vol=sessions.reduce((s,w)=>s+(w.totalVolume||0),0);
-    const kcal=sessions.reduce((s,w)=>s+(w.calories||0),0);
-    return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px"><span style="color:var(--wt);font-weight:600">${lb}</span><span style="font-family:'IBM Plex Mono',monospace">${vol} kg <span style="color:var(--mute);font-size:10.5px">${sessions.length} sess. · ${kcal} kcal</span></span></div>`;
+  const muscTotals={};
+  wtFilt.forEach(w=>(w.muscles||[]).forEach(m=>{
+    if(!m.muscle)return;
+    if(!muscTotals[m.muscle])muscTotals[m.muscle]={vol:0,sets:0,sessions:new Set()};
+    muscTotals[m.muscle].vol+=(m.kg||0);muscTotals[m.muscle].sets+=(m.sets||0);muscTotals[m.muscle].sessions.add(w.id);
+  }));
+  const bkRows=MUSCLE_GROUPS.map(mg=>{
+    const t=muscTotals[mg];if(!t)return'';
+    return`<div style="display:flex;justify-content:space-between;align-items:center;padding:7px 0;border-bottom:1px solid var(--line);font-size:12.5px"><span style="color:var(--wt);font-weight:600">${mg}</span><span style="font-family:'IBM Plex Mono',monospace">${t.vol} kg <span style="color:var(--mute);font-size:10.5px">${t.sets} serie · ${t.sessions.size} sess.</span></span></div>`;
   }).filter(Boolean).join('');
   const bkEl=document.getElementById('wt-bk-rows');
-  if(bkEl)bkEl.innerHTML=bkRows||'<p class="empty" style="font-size:12px">Nessuna sessione etichettata nel periodo</p>';
+  if(bkEl)bkEl.innerHTML=bkRows||'<p class="empty" style="font-size:12px">Nessuna sessione con gruppi muscolari nel periodo</p>';
 
   rElRows();rElChart();rWtRows();rWtChart();rSwRows();rSwChart();rRnRows();rRnChart();rBwRows();rBwChart();rBwSum();
 }
@@ -1135,7 +1219,7 @@ function rAll(){
 document.addEventListener('DOMContentLoaded',()=>{
   load();
   ['e-dt','w-dt','s-dt','r-dt','b-dt'].forEach(id=>{const el=document.getElementById(id);if(el)el.value=td();});
-  initSwStyles();setF('week');
+  initWtMuscles();initSwStyles();setF('week');
   // Show native file picker button when running in Android WebView
   if(window.Android){
     const btn=document.getElementById('imp-android-btn');
